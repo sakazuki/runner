@@ -270,6 +270,16 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
                     captures[name] = undefined;
                 }
             }
+            if (capture.jsonata) {
+                try {
+                    const json = JSON.parse(body);
+                    const expression = (0, jsonata_1.default)(capture.jsonata);
+                    captures[name] = await expression.evaluate(json);
+                }
+                catch {
+                    captures[name] = undefined;
+                }
+            }
             if (capture.xpath) {
                 const dom = new xmldom_1.DOMParser().parseFromString(body);
                 const result = xpath_1.default.select(capture.xpath, dom);
@@ -363,10 +373,11 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
                     const value = params.check.jsonata[path];
                     const expression = (0, jsonata_1.default)(value);
                     const result = await expression.evaluate(json);
+                    const { expected, given, passed } = result;
                     stepResult.checks.jsonata[path] = {
-                        expected: result.hasOwnProperty('expected') ? result.expected : value,
-                        given: result.hasOwnProperty('given') ? result.given : json,
-                        passed: Boolean(result.hasOwnProperty('passed') ? result.passed : result),
+                        expected: expected !== undefined ? expected : value,
+                        given: given !== undefined ? given : json,
+                        passed: passed !== undefined ? passed : !!result
                     };
                 }
             }

@@ -69,6 +69,7 @@ export declare type HTTPStepCaptures = {
 export declare type HTTPStepCapture = {
     xpath?: string;
     jsonpath?: string;
+    jsonata?: string;
     header?: string;
     selector?: string;
     cookie?: string;
@@ -85,7 +86,7 @@ export declare type HTTPStepCheck = {
     json?: object;
     schema?: object;
     jsonpath?: StepCheckJSONPath | StepCheckMatcher;
-    jsonata?: StepCheckJSONata | StepCheckMatcher;
+    jsonata?: StepCheckJSONata;
     xpath?: StepCheckValue | StepCheckMatcher;
     selectors?: StepCheckValue | StepCheckMatcher;
     cookies?: StepCheckValue | StepCheckMatcher;
