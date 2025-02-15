@@ -360,11 +360,13 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
             try {
                 const json = JSON.parse(body);
                 for (const path in params.check.jsonata) {
-                    const expression = (0, jsonata_1.default)(params.check.jsonata[path]);
+                    const value = params.check.jsonata[path];
+                    const expression = (0, jsonata_1.default)(value);
+                    const result = await expression.evaluate(json);
                     stepResult.checks.jsonata[path] = {
-                        expected: params.check.jsonata[path],
-                        given: body,
-                        passed: await expression.evaluate(json),
+                        expected: result.hasOwnProperty('expected') ? result.expected : value,
+                        given: result.hasOwnProperty('given') ? result.given : json,
+                        passed: Boolean(result.hasOwnProperty('passed') ? result.passed : result),
                     };
                 }
             }
@@ -372,7 +374,7 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
                 for (const path in params.check.jsonata) {
                     stepResult.checks.jsonata[path] = {
                         expected: params.check.jsonata[path],
-                        given: body,
+                        given: '<body>',
                         passed: false,
                     };
                 }
