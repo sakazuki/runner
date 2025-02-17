@@ -264,7 +264,11 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
             if (capture.jsonpath) {
                 try {
                     const json = JSON.parse(body);
-                    captures[name] = (0, jsonpath_plus_1.JSONPath)({ path: capture.jsonpath, json, wrap: false });
+                    captures[name] = (0, jsonpath_plus_1.JSONPath)({
+                        path: capture.jsonpath,
+                        json,
+                        wrap: false,
+                    });
                 }
                 catch {
                     captures[name] = undefined;
@@ -367,17 +371,25 @@ async function default_1(params, captures, cookies, schemaValidator, options, co
         // Check JSONata
         if (params.check.jsonata) {
             stepResult.checks.jsonata = {};
+            async function evalJSONata(expression, json) {
+                try {
+                    return await (0, jsonata_1.default)(expression).evaluate(json);
+                }
+                catch {
+                    return json;
+                }
+            }
             try {
                 const json = JSON.parse(body);
                 for (const path in params.check.jsonata) {
-                    const value = params.check.jsonata[path];
-                    const expression = (0, jsonata_1.default)(value);
-                    const result = await expression.evaluate(json);
-                    const { expected, given, passed } = result;
+                    const expression = params.check.jsonata[path];
+                    const value = path.match(/^\$/) ? await evalJSONata(path, json) : json;
+                    const result = await evalJSONata(expression, value);
+                    const { expected, given, passed } = result || {};
                     stepResult.checks.jsonata[path] = {
-                        expected: expected !== undefined ? expected : value,
-                        given: given !== undefined ? given : json,
-                        passed: passed !== undefined ? passed : !!result
+                        expected: expected !== undefined ? expected : expression,
+                        given: given !== undefined ? given : value,
+                        passed: passed !== undefined ? passed : !!result,
                     };
                 }
             }
